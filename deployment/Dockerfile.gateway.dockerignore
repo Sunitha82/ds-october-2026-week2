@@ -1,0 +1,4 @@
+**
+!deployment/
+!deployment/requirements-gateway.txt
+!deployment/gateway.py

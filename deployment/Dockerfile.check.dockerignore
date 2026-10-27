@@ -1,0 +1,9 @@
+**
+!deployment/
+!deployment/check_artifacts.py
+!deployment/requirements-model.txt
+!assessment_outputs/
+!assessment_outputs/prediction_metadata.json
+!assessment_outputs/preprocessor.joblib
+!assessment_outputs/models/
+!assessment_outputs/models/small_mlp_rmsprop_weighted.keras

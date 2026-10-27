@@ -1,0 +1,26 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+# Runtime library used by numerical packages.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies before copying application files.
+COPY deployment/requirements-model.txt /app/deployment/requirements-model.txt
+
+RUN python -m pip install --upgrade pip \
+    && python -m pip install -r /app/deployment/requirements-model.txt \
+    && python -m pip check
+
+COPY deployment/check_artifacts.py /app/deployment/check_artifacts.py
+
+COPY assessment_outputs/prediction_metadata.json /app/assessment_outputs/prediction_metadata.json
+COPY assessment_outputs/preprocessor.joblib /app/assessment_outputs/preprocessor.joblib
+COPY assessment_outputs/models/small_mlp_rmsprop_weighted.keras /app/assessment_outputs/models/small_mlp_rmsprop_weighted.keras
+
+CMD ["python", "deployment/check_artifacts.py"]

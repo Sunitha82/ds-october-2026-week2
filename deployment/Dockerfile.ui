@@ -1,0 +1,21 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+COPY deployment/requirements-ui.txt /app/deployment/requirements-ui.txt
+
+RUN python -m pip install -r /app/deployment/requirements-ui.txt \
+    && python -m pip check
+
+COPY deployment/streamlit_app.py /app/deployment/streamlit_app.py
+
+COPY deployment/streamlit_config.toml /app/.streamlit/config.toml
+
+COPY assessment_outputs/prediction_metadata.json /app/assessment_outputs/prediction_metadata.json
+
+EXPOSE 8501
+
+CMD ["python", "-m", "streamlit", "run", "deployment/streamlit_app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]

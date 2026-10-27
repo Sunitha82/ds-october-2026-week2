@@ -1,0 +1,17 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+COPY deployment/requirements-gateway.txt /app/deployment/requirements-gateway.txt
+
+RUN python -m pip install -r /app/deployment/requirements-gateway.txt \
+    && python -m pip check
+
+COPY deployment/gateway.py /app/deployment/gateway.py
+
+EXPOSE 8000
+
+CMD ["python", "-m", "uvicorn", "deployment.gateway:app", "--host", "0.0.0.0", "--port", "8000"]

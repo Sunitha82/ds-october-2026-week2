@@ -1,0 +1,90 @@
+name: adult-income-demo
+
+services:
+  model:
+    image: adult-income-model:local
+
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.model
+
+    ports:
+      - "127.0.0.1:8002:8001"
+
+    networks:
+      - income-network
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3).close()"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  gateway:
+    image: adult-income-gateway:local
+
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.gateway
+
+    environment:
+      MODEL_SERVICE_URL: "http://model:8001"
+
+    ports:
+      - "127.0.0.1:8003:8000"
+
+    networks:
+      - income-network
+
+    depends_on:
+      model:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).close()"
+      interval: 10s
+      timeout: 7s
+      retries: 3
+      start_period: 10s
+  ui:
+    image: adult-income-ui:local
+
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.ui
+
+    environment:
+      GATEWAY_URL: "http://gateway:8000"
+
+    ports:
+      - "127.0.0.1:8501:8501"
+
+    networks:
+      - income-network
+
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3).close()"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+networks:
+  income-network:
+    driver: bridge

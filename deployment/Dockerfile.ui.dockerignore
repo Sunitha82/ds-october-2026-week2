@@ -1,0 +1,7 @@
+**
+!deployment/
+!deployment/requirements-ui.txt
+!deployment/streamlit_app.py
+!deployment/streamlit_config.toml
+!assessment_outputs/
+!assessment_outputs/prediction_metadata.json

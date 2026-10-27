@@ -1,0 +1,28 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+ENV CUDA_VISIBLE_DEVICES=-1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY deployment/requirements-model.txt /app/deployment/requirements-model.txt
+
+RUN python -m pip install --upgrade pip \
+    && python -m pip install -r /app/deployment/requirements-model.txt \
+    && python -m pip check
+
+COPY deployment/predictor.py /app/deployment/predictor.py
+COPY deployment/model_api.py /app/deployment/model_api.py
+
+COPY assessment_outputs/prediction_metadata.json /app/assessment_outputs/prediction_metadata.json
+COPY assessment_outputs/preprocessor.joblib /app/assessment_outputs/preprocessor.joblib
+COPY assessment_outputs/models/small_mlp_rmsprop_weighted.keras /app/assessment_outputs/models/small_mlp_rmsprop_weighted.keras
+
+EXPOSE 8001
+
+CMD ["python", "-m", "uvicorn", "deployment.model_api:app", "--host", "0.0.0.0", "--port", "8001"]
